@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-escolar
+  namespace: gestao-escolar
+  labels:
+    app: api-escolar
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-escolar
+  template:
+    metadata:
+      labels:
+        app: api-escolar
+    spec:
+      containers:
+      - name: api-escolar
+        image: caio10/api-escolar:c3cf240d690f8d3446fa7db84677fe43a628a845
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: api-escolar-config
+              key: DATABASE_URL
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: api-escolar-config
+              key: LOG_LEVEL
+        - name: API_TITLE
+          valueFrom:
+            configMapKeyRef:
+              name: api-escolar-config
+              key: API_TITLE
+        - name: API_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: api-escolar-config
+              key: API_VERSION
+        volumeMounts: # monta o volume de dados do banco de dados
+        - name: database-storage
+          mountPath: /app/db # caminho onde o volume será montado
+        resources:
+          requests:
+            memory: "128Mi" # memória mínima
+            cpu: "100m" # cpu mínima
+          limits:
+            memory: "256Mi" # memória máxima
+            cpu: "200m" # cpu máxima
+        livenessProbe: # verifica se o container está vivo
+          httpGet:
+            path: /docs # caminho para verificar se o container está vivo
+            port: 8000 # porta do container
+          initialDelaySeconds: 30 # tempo de inicialização
+          periodSeconds: 10 # tempo de verificação
+        readinessProbe: # verifica se o container está pronto
+          httpGet:
+            path: /docs # caminho para verificar se o container está pronto
+            port: 8000 # porta do container
+          initialDelaySeconds: 5 # tempo de inicialização
+          periodSeconds: 5 # tempo de verificação
+      volumes: # volumes para o container
+      - name: database-storage # nome do volume
+        persistentVolumeClaim: # tipo de volume
+          claimName: api-escolar-pvc # nome do volume persistente
