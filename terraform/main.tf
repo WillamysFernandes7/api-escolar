@@ -10,7 +10,7 @@ terraform {
   
   # Configuração do backend para salvar o state no Google Cloud Storage
   backend "gcs" {
-    bucket = "terraform-v1"
+    bucket = "terraform-state-api-escolar"
     prefix = "artifact-registry"
   }
 }
@@ -44,6 +44,8 @@ resource "google_artifact_registry_repository" "api_escolar" {
 
   depends_on = [google_project_service.artifact_registry]
 }
+
+
 
 # Configurar permissões IAM para o registry
 # resource "google_artifact_registry_repository_iam_member" "viewer" {
